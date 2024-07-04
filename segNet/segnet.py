@@ -1,9 +1,21 @@
 import jetson.inference
 from jetson.inference import segNet
 import jetson.utils
-from jetson.utils import videoSource, videoOutput, cudaOverlay, cudaDeviceSynchronize, Log
+from jetson.utils import videoSource, videoOutput, cudaOverlay, cudaDeviceSynchronize, Log, cudaAllocMapped
 
+class segmentationBuffers:
+    def __init__(self, net):
+        self.net = net
+        self.overlay = None
+        self.mask = None
+        self.composite = None
+        self.output = None
 
+    def Alloc(self, shape, format):
+        self.overlay = cudaAllocMapped(width=shape[1], height=shape[0], format=format)
+        self.mask = cudaAllocMapped(width=shape[1], height=shape[0], format=format)
+        self.composite = cudaAllocMapped(width=shape[1] * 2, height=shape[0], format=format)
+        self.output = cudaAllocMapped(width=shape[1] * 2, height=shape[0], format=format)
 
 # load the segmentation network
 net = segNet("fcn-resnet18-voc")
@@ -25,7 +37,7 @@ input = videoSource(rtsp_url, argv=['--input-codec=H265'])
 while True:
     # capture the next image
     img_input = input.Capture()
-
+    
     if img_input is None: # timeout
         continue
         
