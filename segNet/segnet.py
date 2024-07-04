@@ -1,6 +1,9 @@
 import sys
 import argparse
 
+import jetson.inference
+import jetson.utils
+
 from jetson.inference import segNet
 from jetson.utils import videoSource, videoOutput, cudaOverlay, cudaDeviceSynchronize, Log
 
