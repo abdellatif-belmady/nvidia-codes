@@ -27,5 +27,24 @@ while display.IsStreaming():
         print("Failed to detect objects in the image")
         continue
 
+    person_count = 0
+    car_count = 0
+    bike_count = 0
+    sign_count = 0
+
+    for d in detections:
+        className = net.GetClassDesc(d.ClassID)
+        if className == "person":
+            person_count+=1
+
+        elif className == "car":
+            car_count+=1
+
+        elif className == "bike":
+            bike_count+=1
+
+        elif className == "sign":
+            sign_count+=1
+
     display.Render(img)
-    display.SetStatus("Object Detection | Network {:.0f} FPS".format(net.GetNetworkFPS()))
+    display.SetStatus("Object Detection | Network {:.0f} FPS | Person {:.0f} | Car {:.0f} | Bike {:.0f} | Sign {:.0f}".format(net.GetNetworkFPS(), person_count, car_count, bike_count, sign_count))

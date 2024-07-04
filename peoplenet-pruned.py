@@ -27,5 +27,20 @@ while display.IsStreaming():
         print("Failed to detect objects in the image")
         continue
 
+    person_count = 0
+    bag_count = 0
+    face_count = 0
+
+    for d in detections:
+        className = net.GetClassDesc(d.ClassID)
+        if className == "person":
+            person_count+=1
+
+        elif className == "bag":
+            bag_count+=1
+
+        elif className == "face":
+            face_count+=1
+
     display.Render(img)
-    display.SetStatus("Object Detection | Network {:.0f} FPS".format(net.GetNetworkFPS()))
+    display.SetStatus("Object Detection | Network {:.0f} FPS | Person {:.0f} | Bag {:.0f} | Face {:.0f}".format(net.GetNetworkFPS(), person_count, bag_count, face_count))
