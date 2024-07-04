@@ -18,7 +18,7 @@ class segmentationBuffers:
         self.output = cudaAllocMapped(width=shape[1] * 2, height=shape[0], format=format)
 
 # load the segmentation network
-net = segNet("fcn-resnet18-voc", threshold=0.5)
+net = segNet("fcn-resnet18-voc")
 print(f"Loaded segmentation network: fcn-resnet18-voc")
 
 # set the alpha blending value
