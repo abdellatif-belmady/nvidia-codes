@@ -48,7 +48,7 @@ except:
 net = actionNet(args.network, sys.argv)
 
 # create video sources & outputs
-input = videoSource(args.input, argv=sys.argv)
+input = videoSource(args.input, argv=['--input-codec=H265'])
 output = videoOutput(args.output, argv=sys.argv)
 font = cudaFont()
 
