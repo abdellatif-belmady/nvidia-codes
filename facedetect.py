@@ -5,7 +5,7 @@ import jetson.utils
 display = jetson.utils.videoOutput("display://0")
 
 # Load the object detection network
-net = jetson.inference.detectNet("dashcamnet", threshold=0.5)
+net = jetson.inference.detectNet("facedetect", threshold=0.5)
 
 # Create the video source with the RTSP stream
 rtsp_url = "rtsp://admin:admin@192.168.1.64:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif"
