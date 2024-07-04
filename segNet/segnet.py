@@ -2,7 +2,6 @@ import jetson.inference
 from jetson.inference import segNet
 import jetson.utils
 from jetson.utils import videoSource, videoOutput, cudaOverlay, cudaDeviceSynchronize, Log
-from segnet.utils import *
 
 
 
