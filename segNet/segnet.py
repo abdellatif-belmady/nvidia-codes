@@ -24,6 +24,9 @@
 import sys
 import argparse
 
+import jetson.inference
+import jetson.utils
+
 from jetson.inference import actionNet
 from jetson.utils import videoSource, videoOutput, cudaFont, Log
 
@@ -44,12 +47,15 @@ except:
     sys.exit(0)
 
 
+output = videoOutput(args.output, argv=sys.argv)
+
+
 # load the recognition network
 net = actionNet(args.network, sys.argv)
 
+
 # create video sources & outputs
 input = videoSource(args.input, argv=['--input-codec=H265'])
-output = videoOutput(args.output, argv=sys.argv)
 font = cudaFont()
 
 # process frames until EOS or the user exits
@@ -59,6 +65,9 @@ while output.IsStreaming():
 
     if img is None: # timeout
         continue  
+
+    if not isinstance(img, jetson.utils.cudaImage):
+        img = jetson.utils.cudaFromNumpy(img)
 
     # classify the action sequence
     class_id, confidence = net.Classify(img)
