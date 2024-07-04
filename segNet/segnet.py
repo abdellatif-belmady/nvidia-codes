@@ -53,7 +53,7 @@ output = videoOutput(args.output, argv=sys.argv)
 font = cudaFont()
 
 # process frames until EOS or the user exits
-while True:
+while output.IsStreaming():
     # capture the next image
     img = input.Capture()
 
@@ -77,7 +77,3 @@ while True:
 
     # print out performance info
     net.PrintProfilerTimes()
-
-    # exit on input/output EOS
-    if not input.IsStreaming() or not output.IsStreaming():
-        break
