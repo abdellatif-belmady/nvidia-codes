@@ -1,25 +1,51 @@
-import jetson.inference
-from jetson.inference import segNet
-import jetson.utils
-from jetson.utils import videoSource, videoOutput, cudaOverlay, cudaDeviceSynchronize, Log
-from utils import *
+import sys
+import argparse
 
+from jetson.inference import segNet
+from jetson.utils import videoSource, videoOutput, cudaOverlay, cudaDeviceSynchronize, Log
+
+from segnet_utils import *
+
+# parse the command line
+parser = argparse.ArgumentParser(description="Segment a live camera stream using an semantic segmentation DNN.", 
+                                 formatter_class=argparse.RawTextHelpFormatter, 
+                                 epilog=segNet.Usage() + videoSource.Usage() + videoOutput.Usage() + Log.Usage())
+
+parser.add_argument("input", type=str, default="rtsp://admin:admin@192.168.1.64:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif", nargs='?', help="URI of the input stream")
+parser.add_argument("output", type=str, default="display://0", nargs='?', help="URI of the output stream")
+parser.add_argument("--network", type=str, default="fcn-resnet18-voc", help="pre-trained model to load, see below for options")
+parser.add_argument("--filter-mode", type=str, default="linear", choices=["point", "linear"], help="filtering mode used during visualization, options are:\n  'point' or 'linear' (default: 'linear')")
+parser.add_argument("--visualize", type=str, default="overlay,mask", help="Visualization options (can be 'overlay' 'mask' 'overlay,mask'")
+parser.add_argument("--ignore-class", type=str, default="void", help="optional name of class to ignore in the visualization results (default: 'void')")
+parser.add_argument("--alpha", type=float, default=150.0, help="alpha blending value to use during overlay, between 0.0 and 255.0 (default: 150.0)")
+parser.add_argument("--stats", action="store_true", help="compute statistics about segmentation mask class output")
+
+try:
+    args = parser.parse_known_args()[0]
+except:
+    print("")
+    parser.print_help()
+    sys.exit(0)
 
 # load the segmentation network
-net = segNet("fcn-resnet18-voc")
+net = segNet(args.network, sys.argv)
+
+# note: to hard-code the paths to load a model, the following API can be used:
+#
+# net = segNet(model="model/fcn_resnet18.onnx", labels="model/labels.txt", colors="model/colors.txt",
+#              input_blob="input_0", output_blob="output_0")
 
 # set the alpha blending value
-net.SetOverlayAlpha(150.0)
+net.SetOverlayAlpha(args.alpha)
 
 # create video output
-output = videoOutput("display://0")
+output = videoOutput(args.output, argv=sys.argv)
 
 # create buffer manager
-buffers = segmentationBuffers(net)
+buffers = segmentationBuffers(net, args)
 
 # create video source
-rtsp_url = "rtsp://admin:admin@192.168.1.64:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif"
-input = videoSource(rtsp_url, argv=['--input-codec=H265'])
+input = videoSource(args.input, argv=sys.argv)
 
 # process frames until EOS or the user exits
 while True:
@@ -33,15 +59,15 @@ while True:
     buffers.Alloc(img_input.shape, img_input.format)
 
     # process the segmentation network
-    net.Process(img_input, ignore_class="void")
+    net.Process(img_input, ignore_class=args.ignore_class)
 
     # generate the overlay
     if buffers.overlay:
-        net.Overlay(buffers.overlay, filter_mode="linear")
+        net.Overlay(buffers.overlay, filter_mode=args.filter_mode)
 
     # generate the mask
     if buffers.mask:
-        net.Mask(buffers.mask, filter_mode="linear")
+        net.Mask(buffers.mask, filter_mode=args.filter_mode)
 
     # composite the images
     if buffers.composite:
@@ -52,11 +78,15 @@ while True:
     output.Render(buffers.output)
 
     # update the title bar
-    output.SetStatus("{:s} | Network {:.0f} FPS".format("fcn-resnet18-voc", net.GetNetworkFPS()))
+    output.SetStatus("{:s} | Network {:.0f} FPS".format(args.network, net.GetNetworkFPS()))
 
     # print out performance info
     cudaDeviceSynchronize()
     net.PrintProfilerTimes()
+
+    # compute segmentation class stats
+    if args.stats:
+        buffers.ComputeStats()
 
     # exit on input/output EOS
     if not input.IsStreaming() or not output.IsStreaming():
