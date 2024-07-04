@@ -24,7 +24,7 @@ net = segNet("fcn-resnet18-voc")
 net.SetOverlayAlpha(150.0)
 
 # create video output
-output = videoOutput("display://0")
+output = jetson.utils.videoOutput("display://0")
 
 # create buffer manager
 buffers = segmentationBuffers(net)
