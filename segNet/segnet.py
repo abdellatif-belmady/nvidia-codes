@@ -47,11 +47,11 @@ except:
     sys.exit(0)
 
 
-output = videoOutput(args.output, argv=sys.argv)
+output = videoOutput(args.output)
 
 
 # load the recognition network
-net = actionNet(args.network, sys.argv)
+net = actionNet("resnet-18")
 
 
 # create video sources & outputs
