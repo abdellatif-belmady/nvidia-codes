@@ -8,7 +8,7 @@ display = jetson.utils.videoOutput("display://0")
 net = jetson.inference.detectNet("peoplenet", threshold=0.5)
 
 # Create the video source with the RTSP stream
-rtsp_url = "rtsp://admin:admin@192.168.1.64:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif"
+rtsp_url = "rtsp://admin:admin123@doorzddns.ddns.net:5006/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif"
 camera = jetson.utils.videoSource(rtsp_url, argv=['--input-codec=H265'])
 
 # Process the video stream
